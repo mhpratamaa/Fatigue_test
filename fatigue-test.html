@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fatigue Test</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.12.0"></script>
+    <script defer src="js/fatigue-test.js"></script>
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        :root {
+            --button-bg: var(--primary);
+            --button-color: #fff; /* Button text color */
+        }
+
+        /* Additional styles to ensure content is visible */
+        .content {
+            padding-top: 100px; /* Adjust based on the height of the navbar */
+            display: flex; /* Use flexbox for layout */
+            flex-direction: column; /* Arrange items in a column */
+            align-items: center; /* Center items horizontally */
+            gap: 20px; /* Space between elements */
+            text-align: center; /* Center the text */
+        }
+
+        .columns {
+            display: flex; /* Use flexbox for two-column layout */
+            justify-content: center; /* Center the columns horizontally */
+            align-items: flex-start; /* Align items to the top */
+            gap: 20px; /* Space between columns */
+            width: 100%;
+        }
+
+        .content h1 {
+            color: var(--primary);
+            font-size: 2.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .content h2 {
+            color: #fff;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            margin-top: 1rem;
+        }
+
+        .description {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            max-width: 600px;
+        }
+
+        .column {
+            flex: 1; /* Each column takes up equal space */
+            max-width: 500px; /* Maximum width for each column */
+        }
+
+        #upload-image {
+            margin-top: 20px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        #media-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%; /* Ensure the container does not get too wide */
+            height: 240px; /* Fixed height for consistency */
+            overflow: hidden;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: var(--primary);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #uploaded-image, #camera {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures the image covers the container without distortion */
+            display: none;
+        }
+
+        #camera {
+            border-radius: 8px;
+        }
+
+        #take-photo {
+            display: none;
+        }
+
+        #loading-indicator {
+            display: none;
+            margin-top: 20px;
+        }
+
+        button, input[type="file"] {
+            background-color: var(--button-bg);
+            color: var(--button-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover, input[type="file"]:hover {
+            background-color: darken(var(--button-bg), 10%);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Deteksi<span>Kelelahan</span></h1> 
+        <div class="navbar-nav">
+            <a href="index.html">Home</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#tes">Jenis Tes</a>
+            <a href="index.html#assessment">Assessment</a>
+        </div>
+        <div class="navbar-extra">
+            <a href="index.html" id="home"><i data-feather="home"></i></a>
+            <a href="index.html#tes" id="eye"><i data-feather="eye"></i></a>
+            <a href="index.html#assessment" id="file"><i data-feather="file-text"></i></a>
+            <a href="#" id="hamburger-menu"><i data-feather="menu"></i></a>
+        </div>
+    </nav>
+
+    <section class="fatigue-test" id="fatigue-test">
+        <main class="content">
+            <h1>Fatigue Test</h1>
+            <p class="description">Unggah kondisi mata Anda atau gunakan kamera untuk mendeteksi kelelahan.</p>
+            <div class="columns">
+                <div class="column">
+                    <input type="file" id="upload-image" accept="image/*">
+                    <h2>Atau</h2>
+                    <button id="start-camera">Buka Kamera</button>
+                </div>
+                <div class="column">
+                    <div id="media-container">
+                        <img id="uploaded-image" alt="Uploaded Image">
+                        <video id="camera" autoplay></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                    </div>
+                    <div class="buttons">
+                        <button id="take-photo">Ambil Foto</button>
+                        <button id="classify-button">Periksa Sekarang</button>
+                    </div>
+                    <p id="result"></p>
+                    <!-- Indikator Loading -->
+                    <div id="loading-indicator">
+                        <img src="img/loading.gif" alt="Loading">
+                        <p>Mengklasifikasi...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <script>
+        const startCameraButton = document.getElementById('start-camera');
+        const takePhotoButton = document.getElementById('take-photo');
+        const classifyButton = document.getElementById('classify-button');
+        const mediaContainer = document.getElementById('media-container');
+        const camera = document.getElementById('camera');
+        const canvas = document.getElementById('canvas');
+        const uploadedImage = document.getElementById('uploaded-image');
+        const uploadImageInput = document.getElementById('upload-image');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const resultParagraph = document.getElementById('result');
+
+        let model;
+
+        async function loadModel() {
+            const modelUrl = '../model_tfjs/model.json'; // Ganti dengan URL yang benar dari GitHub
+            try {
+                model = await tf.loadLayersModel(modelUrl);
+                console.log("Model loaded successfully.");
+            } catch (error) {
+                console.error("Error loading the model: ", error);
+            }
+        }
+
+
+        function preprocessImage(image) {
+            return tf.browser.fromPixels(image)
+                .resizeNearestNeighbor([150, 150]) // Replace with your model's input shape
+                .toFloat()
+                .expandDims();
+        }
+
+        function displayResult(prediction) {
+            const classNames = ['Sehat', 'Sakit'];  // Adjust according to your model's output classes
+            prediction.array().then(array => {
+                const probabilities = array[0]; // Array of probabilities for each class
+                let resultText = 'Prediction: ';
+                for (let i = 0; i < classNames.length; i++) {
+                    resultText += `${classNames[i]}: ${probabilities[i].toFixed(4)}, `;
+                }
+                resultText = resultText.slice(0, -2);
+                resultParagraph.innerText = resultText;
+                loadingIndicator.style.display = 'none';
+            });
+        }
+
+        async function classifyImage(imageElement) {
+            if (!model) {
+                alert('Model not loaded yet. Please wait.');
+                return;
+            }
+            const tensor = preprocessImage(imageElement);
+            const predictions = await model.predict(tensor);
+            displayResult(predictions);
+        }
+
+        classifyButton.addEventListener('click', async () => {
+            loadingIndicator.style.display = 'block';
+            resultParagraph.innerText = '';
+
+            if (uploadImageInput.files.length > 0) {
+                const file = uploadImageInput.files[0];
+                const image = new Image();
+                image.src = URL.createObjectURL(file);
+                image.onload = async () => {
+                    await classifyImage(image);
+                };
+            } else if (camera.srcObject) {
+                const context = canvas.getContext('2d');
+                canvas.width = camera.videoWidth;
+                canvas.height = camera.videoHeight;
+                context.drawImage(camera, 0, 0, canvas.width, canvas.height);
+                const dataURL = canvas.toDataURL('image/png');
+                const image = new Image();
+                image.src = dataURL;
+                image.onload = async () => {
+                    await classifyImage(image);
+                };
+            } else {
+                alert("Please upload an image or take a photo first.");
+                loadingIndicator.style.display = 'none';
+            }
+        });
+
+        startCameraButton.addEventListener('click', async () => {
+            mediaContainer.style.display = 'flex';
+            uploadedImage.style.display = 'none';
+            camera.style.display = 'block';
+            takePhotoButton.style.display = 'block';
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            camera.srcObject = stream;
+        });
+
+        takePhotoButton.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            canvas.width = camera.videoWidth;
+            canvas.height = camera.videoHeight;
+            context.drawImage(camera, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/png');
+            uploadedImage.src = dataURL;
+            uploadedImage.style.display = 'block';
+            camera.style.display = 'none';
+            takePhotoButton.style.display = 'none';
+            camera.srcObject.getTracks().forEach(track => track.stop());
+        });
+
+        uploadImageInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage.src = e.target.result;
+                    uploadedImage.style.display = 'block';
+                    // Hide camera and stop stream
+                    takePhotoButton.style.display = 'none';
+                    camera.style.display = 'none';
+                    if (camera.srcObject) {
+                        camera.srcObject.getTracks().forEach(track => track.stop());
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        feather.replace();
+
+        window.onload = loadModel;
+    </script>
+</body>
+</html>

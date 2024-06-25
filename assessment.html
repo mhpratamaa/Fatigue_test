@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Aktivitas Sehari-hari</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script defer src="C:/Users/mhpra/OneDrive/Dokumen/web/js/fatigue-test.js"></script>
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        .container {
+            background-color: rgba(1, 1, 1, 0.8);
+            padding-top: 7.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            max-width: 10000px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 0.7rem;
+            border-radius: 0.5;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+            padding-left: 5rem;
+        }
+
+        h2{
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            margin-right: 50rem;
+            display: flexbox;
+            padding: 0.6rem 1rem;
+            font-size: 1rem;
+            color: #fff;
+            font-weight: 700;
+            background-color: var(--primary);
+            border-radius: 0.5rem;
+        }
+
+        input{
+            margin-bottom: 0.5rem;
+            margin-left: 2.2rem;
+        }
+
+        label {
+            display: contents;
+            padding-bottom: 3rem;
+            padding-left: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--primary);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 0.5rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #a67c4f;
+        }
+
+        #response {
+            margin-top: 2rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <h1>Deteksi<span>Kelelahan</span></h1> 
+        <div class="navbar-nav">
+            <a href="index.html">Home</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#tes">Jenis Tes</a>
+            <a href="index.html#assessment">Assessment</a>
+        </div>
+        <div class="navbar-extra">
+            <a href="index.html" id="home"><i data-feather="home"></i></a>
+            <a href="index.html#tes" id="eye"><i data-feather="eye"></i></a>
+            <a href="index.html#assessment" id="file"><i data-feather="file-text"></i></a>
+            <a href="#" id="hamburger-menu"><i data-feather="menu"></i></a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>ASSESSMENT</h1>
+        <form id="surveyForm">
+            <div class="form-group">
+                <h2>1. Apakah kamu mendapatkan istirahat yang cukup?</h2>
+                <div>
+                    <input type="radio" id="q1a" name="q1" value="Sangat cukup" required>
+                    <label for="q1a">Sangat cukup</label>
+                </div>
+                <div>
+                    <input type="radio" id="q1b" name="q1" value="cukup">
+                    <label for="q1b">cukup</label>
+                </div>
+                <div>
+                    <input type="radio" id="q1c" name="q1" value="Tidak cukup">
+                    <label for="q1c">Tidak cukup</label>
+                </div>
+                <div>
+                    <input type="radio" id="q1d" name="q1" value="Sangat tidak cukup">
+                    <label for="q1d">Sangat tidak cukup</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <h2>2. Berapa lama waktu tidur yang kamu dapatkan pada malam hari?</h2>
+                <div>
+                    <input type="radio" id="q2a" name="q2" value="Lebih dari 8 Jam" required>
+                    <label for="q2a">Lebih dari 8 Jam</label>
+                </div>
+                <div>
+                    <input type="radio" id="q2b" name="q2" value="pas 8 Jam">
+                    <label for="q2b">pas 8 Jam</label>
+                </div>
+                <div>
+                    <input type="radio" id="q2c" name="q2" value="Kurang dari 8 Jam">
+                    <label for="q2c">Kurang dari 8 Jam</label>
+                </div>
+                <div>
+                    <input type="radio" id="q2d" name="q2" value="Tidak tidur">
+                    <label for="q2d">Tidak tidur</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <h2>3. Pada pukul berapa biasanya kamu tidur pada malam hari?</h2>
+                <div>
+                    <input type="radio" id="q3a" name="q3" value="Sebelum jam 21.00" required>
+                    <label for="q3a">Sebelum jam 21.00</label>
+                </div>
+                <div>
+                    <input type="radio" id="q3b" name="q3" value="Pukul 21.00">
+                    <label for="q3b">Pukul 21.00</label>
+                </div>
+                <div>
+                    <input type="radio" id="q3c" name="q3" value="Pukul 22.00">
+                    <label for="q3c">Pukul 22.00</label>
+                </div>
+                <div>
+                    <input type="radio" id="q3d" name="q3" value="Lewat dari jam 22.00">
+                    <label for="q3d">Lewat dari jam 22.00</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <h2>4. Seberapa sering kamu menatap layar pada perangkat yang kamu miliki?</h2>
+                <div>
+                    <input type="radio" id="q4a" name="q4" value="Sangat sering" required>
+                    <label for="q4a">Sangat sering</label>
+                </div>
+                <div>
+                    <input type="radio" id="q4b" name="q4" value="Cukup sering">
+                    <label for="q4b">Cukup sering</label>
+                </div>
+                <div>
+                    <input type="radio" id="q4c" name="q4" value="Jarang">
+                    <label for="q4c">Jarang</label>
+                </div>
+                <div>
+                    <input type="radio" id="q4d" name="q4" value="Tidak pernah">
+                    <label for="q4d">Sangat jarang</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <h2>5. Berapa lama biasanya kamu menatap layar pada perangkat?</h2>
+                <div>
+                    <input type="radio" id="q5a" name="q5" value="Lebih dari 5 Jam" required>
+                    <label for="q5a">Lebih dari 5 Jam</label>
+                </div>
+                <div>
+                    <input type="radio" id="q5b" name="q5" value="Lebih dari 3 jam">
+                    <label for="q5b">Lebih dari 3 jam</label>
+                </div>
+                <div>
+                    <input type="radio" id="q5c" name="q5" value="Hanya 1 jam">
+                    <label for="q5c">Hanya 1 jam</label>
+                </div>
+                <div>
+                    <input type="radio" id="q5d" name="q5" value="Kurang dari 1 Jam">
+                    <label for="q5d">Kurang dari 1 Jam</label>
+                </div>
+            </div>
+            <button type="submit">CETAK JAWABAN</button>
+        </form>
+        <div id="response"></div>
+    </div>
+    <script src="scripts.js"></script>
+    <script>
+        feather.replace();
+    </script>
+    <script>
+        document.getElementById('surveyForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const responses = {
+                q1: document.querySelector('input[name="q1"]:checked').value,
+                q2: document.querySelector('input[name="q2"]:checked').value,
+                q3: document.querySelector('input[name="q3"]:checked').value,
+                q4: document.querySelector('input[name="q4"]:checked').value,
+                q5: document.querySelector('input[name="q5"]:checked').value,
+            };
+
+            // Set title and margins
+            doc.setFontSize(18);
+            doc.text('Hasil Assessment', 105, 20, { align: 'center' });
+
+            doc.setFontSize(12);
+            const lineHeight = 10;
+            let yPosition = 30;
+            const marginLeft = 20;
+            const marginRight = 20;
+
+            // Add each question and response
+            doc.text(`1. Apakah kamu mendapatkan istirahat yang cukup?`, marginLeft, yPosition);
+            yPosition += lineHeight;
+            doc.text(`Jawaban: ${responses.q1}`, marginLeft, yPosition);
+
+            yPosition += lineHeight * 2;
+            doc.text(`2. Berapa lama waktu tidur yang kamu dapatkan pada malam hari?`, marginLeft, yPosition);
+            yPosition += lineHeight;
+            doc.text(`Jawaban: ${responses.q2}`, marginLeft, yPosition);
+
+            yPosition += lineHeight * 2;
+            doc.text(`3. Pada pukul berapa biasanya kamu tidur pada malam hari?`, marginLeft, yPosition);
+            yPosition += lineHeight;
+            doc.text(`Jawaban: ${responses.q3}`, marginLeft, yPosition);
+
+            yPosition += lineHeight * 2;
+            doc.text(`4. Seberapa sering kamu menatap layar pada perangkat yang kamu miliki?`, marginLeft, yPosition);
+            yPosition += lineHeight;
+            doc.text(`Jawaban: ${responses.q4}`, marginLeft, yPosition);
+
+            yPosition += lineHeight * 2;
+            doc.text(`5. Berapa lama biasanya kamu menatap layar pada perangkat?`, marginLeft, yPosition);
+            yPosition += lineHeight;
+            doc.text(`Jawaban: ${responses.q5}`, marginLeft, yPosition);
+
+            // Save the PDF
+            doc.save('survey_responses.pdf');
+        });
+    </script>
+</body>
+</html>
